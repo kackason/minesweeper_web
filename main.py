@@ -50,15 +50,15 @@ class MineSweeper:
         bomb_img = pygame.image.load("bomb.png")
         bomb_img = pygame.transform.scale(bomb_img, (GRID_SIZE, GRID_SIZE))
         buf = 3
-        is_completed = True
-        is_exploded = False
+        self.is_completed = True
+        self.is_exploded = False
         for i in range(VERTICAL):
             for j in range(HORIZONTAL):
                 num = self.board[i,j]
                 rect_num = pygame.Rect(j*GRID_SIZE, i*GRID_SIZE, GRID_SIZE, GRID_SIZE)
                 rect_mask = pygame.Rect(j*GRID_SIZE+buf, i*GRID_SIZE+buf, GRID_SIZE-2*buf, GRID_SIZE-2*buf)
                 pygame.draw.rect(screen, BLACK, rect_num, 1)
-                if self.is_opened[i,j] == True:    #マスク
+                if self.is_opened[i,j]:    #マスク
                     if num > 0: #数字の描画
                         text = number_font.render(str(num), True, (0, 0, 255))  # 描画するテキストの作成
                         text_pos = text.get_rect(center = ((j+0.5)*GRID_SIZE, (i+0.5)*GRID_SIZE))      # 表示位置
@@ -66,11 +66,11 @@ class MineSweeper:
                     elif num < 0: #爆弾の描画
                         bomb_pos = bomb_img.get_rect(center = ((j+0.5)*GRID_SIZE, (i+0.5)*GRID_SIZE))
                         screen.blit(bomb_img, bomb_pos)
-                        is_exploded = True
+                        self.is_exploded = True
                 else:
                     pygame.draw.rect(screen, GRAY, rect_mask, 0)
                     if num >= 0:
-                        is_completed = False
+                        self.is_completed = False
 
     ###爆弾設置(-1)
     def set_bomb(self):
@@ -150,15 +150,15 @@ async def main():
                 game.next_move(y, x)
                 game.draw_board()  
 
-        if game.is_exploded == True:
-            game.explode()
-        elif game.is_completed == True:
-            game.clear()
+        if game.is_exploded:
+            await game.explode()
+        elif game.is_completed:
+            await game.clear()
         pygame.display.flip()
         await asyncio.sleep(0)
     
-    pygame.quit()
-    sys.exit()
+    #pygame.quit()
+    #sys.exit()
     
 if __name__ == "__main__":
     asyncio.run(main())
