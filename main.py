@@ -34,12 +34,15 @@ class MineSweeper:
         self.is_opened = np.zeros((VERTICAL, HORIZONTAL), dtype=bool)
         self.set_bomb()
         
-        #周りの爆弾個数を計算
-        for i in range(VERTICAL):
+        for i in range(VERTICAL):   #周りの爆弾個数を計算
             for j in range(HORIZONTAL):
                 self.count_bomb(i,j)
         #print(self.board)
-    
+        
+        self.is_exploded = False
+        self.is_completed = False
+        self.running = True
+        
     ###描画
     def draw_board(self):
         screen.fill(CHARCOAL)
@@ -68,10 +71,6 @@ class MineSweeper:
                     pygame.draw.rect(screen, GRAY, rect_mask, 0)
                     if num >= 0:
                         is_completed = False
-        if is_exploded == True:
-            self.explode()
-        elif is_completed == True:
-            self.clear()
 
     ###爆弾設置(-1)
     def set_bomb(self):
@@ -111,46 +110,53 @@ class MineSweeper:
             self.search_zero(i,j)
             
     ###爆破
-    def explode(self):                
+    async def explode(self):                
         text_font = pygame.font.SysFont("arialblack", 50)
         text = text_font.render("GAME OVER", True, RED)
         text_pos = text.get_rect()
         text_pos.center = screen.get_rect().center
         screen.blit(text, text_pos)
         pygame.display.flip()
-        pygame.time.wait(5000)
-        pygame.quit()
-        sys.exit()
+        await asyncio.sleep(3)
+        self.running = False
         
     ###ゲームクリア
-    def clear(self):
+    async def clear(self):
         text_font = pygame.font.SysFont("arialblack", 50)
         text = text_font.render("CLEAR!!", True, YELLOW)
         text_pos = text.get_rect()
         text_pos.center = screen.get_rect().center
         screen.blit(text, text_pos)
         pygame.display.flip()
-        pygame.time.wait(5000)
-        pygame.quit()
-        sys.exit()
-        
+        await asyncio.sleep(3)
+        self.running = False
 
 async def main():
     game = MineSweeper()
-    running = True
     game.draw_board()
-    while running:
+    first_click_skipped = False #初回クリックを無視
+    
+    while game.running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                running = False
+                game.running = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
+                if not first_click_skipped:
+                    first_click_skipped = True
+                    continue
                 x,y = event.pos
                 x //= GRID_SIZE
                 y //= GRID_SIZE
                 game.next_move(y, x)
                 game.draw_board()  
-            pygame.display.flip()
+
+        if game.is_exploded == True:
+            game.explode()
+        elif game.is_completed == True:
+            game.clear()
+        pygame.display.flip()
         await asyncio.sleep(0)
+    
     pygame.quit()
     sys.exit()
     
