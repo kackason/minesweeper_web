@@ -24,7 +24,7 @@ HEIGHT = GRID_SIZE*VERTICAL
 #pygame初期化
 pygame.init()
 screen = pygame.display.set_mode((WIDTH,HEIGHT))
-pygame.display.set_caption("マインスイーパ　爆弾数：" + str(BOM_NUM))
+pygame.display.set_caption("マインスイーパ<爆弾数：" + str(BOM_NUM) + ">")
 
 class MineSweeper:
 
